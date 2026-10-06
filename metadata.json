@@ -1,0 +1,6 @@
+{
+  "name": "Telangana Model School Navipet Portal",
+  "description": "Comprehensive School Information, Public Portal, Student Directory, Digital Media Gallery, and Secure Administration Dashboard for Telangana Model School, Navipet.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
