@@ -4,7 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { AdminSidebar } from './AdminSidebar';
 
 export const AdminLayout: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Loading secure session...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;

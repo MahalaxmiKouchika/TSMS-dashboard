@@ -19,9 +19,9 @@ export const AdminHeader: React.FC<{ title: string }> = ({ title }) => {
         </Link>
         <div className="flex items-center space-x-2 pl-4 border-l border-slate-200">
           <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-            {admin?.full_name ? admin.full_name.charAt(0) : <User className="w-4 h-4" />}
+            {admin?.admin_identifier ? admin.admin_identifier.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
           </div>
-          <span className="text-sm font-medium text-slate-700 hidden sm:inline">{admin?.full_name}</span>
+          <span className="text-sm font-medium text-slate-700 hidden sm:inline">{admin?.admin_identifier}</span>
         </div>
       </div>
     </header>

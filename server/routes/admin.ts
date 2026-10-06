@@ -40,11 +40,11 @@ const upload = multer({
   }
 });
 
-async function logAudit(email: string, action: string, details: string, ip: string) {
+async function logAudit(admin_identifier: string, action: string, details: string, ip: string) {
   try {
     await dbRun(
-      `INSERT INTO audit_logs (admin_email, action, details, ip_address) VALUES (?, ?, ?, ?)`,
-      [email, action, details, ip || '127.0.0.1']
+      `INSERT INTO audit_logs (admin_identifier, action, details, ip_address) VALUES (?, ?, ?, ?)`,
+      [admin_identifier, action, details, ip || '127.0.0.1']
     );
   } catch (e) {
     console.error('Audit log failed:', e);
@@ -52,72 +52,63 @@ async function logAudit(email: string, action: string, details: string, ip: stri
 }
 
 // ==================== AUTHENTICATION ====================
+const loginAttempts = new Map<string, { count: number, timestamp: number }>();
+
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required.' });
-    }
-
-    const admin = await dbGet('SELECT * FROM admin_users WHERE email = ?', [email.trim().toLowerCase()]);
-    if (!admin) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
-    }
-
-    if (admin.locked_until) {
-      const lockTime = new Date(admin.locked_until).getTime();
-      const now = new Date().getTime();
-      if (now < lockTime) {
-        const remainingMins = Math.ceil((lockTime - now) / 60000);
-        return res.status(423).json({
-          success: false,
-          message: `Account is temporarily locked due to multiple incorrect password attempts. Please try again in ${remainingMins} minutes or use Forgot Password.`
-        });
+    const { admin_identifier, password } = req.body;
+    const ip = req.ip || '127.0.0.1';
+    const now = Date.now();
+    const attempt = loginAttempts.get(ip);
+    
+    if (attempt) {
+      if (now - attempt.timestamp < 15 * 60 * 1000) {
+        if (attempt.count >= 5) {
+          return res.status(429).json({ success: false, message: 'Too many unsuccessful login attempts. Please try again later.' });
+        }
       } else {
-        await dbRun('UPDATE admin_users SET failed_attempts = 0, locked_until = NULL WHERE id = ?', [admin.id]);
+        loginAttempts.delete(ip);
       }
+    }
+
+    if (!admin_identifier || !password) {
+      return res.status(401).json({ success: false, message: 'Invalid administrator ID or password.' });
+    }
+
+    const admin = await dbGet('SELECT * FROM admin_users WHERE id = 1');
+    if (!admin || admin.admin_identifier !== admin_identifier.trim()) {
+      const current = loginAttempts.get(ip) || { count: 0, timestamp: now };
+      loginAttempts.set(ip, { count: current.count + 1, timestamp: now });
+      return res.status(401).json({ success: false, message: 'Invalid administrator ID or password.' });
     }
 
     const isMatch = bcrypt.compareSync(password, String(admin.password_hash));
     if (!isMatch) {
-      const attempts = Number(admin.failed_attempts || 0) + 1;
-      if (attempts >= 5) {
-        const lockDuration = getDbMode() === 'postgres' ? `NOW() + INTERVAL '15 minutes'` : `datetime('now', '+15 minutes')`;
-        await dbRun(`UPDATE admin_users SET failed_attempts = ?, locked_until = ${lockDuration} WHERE id = ?`, [attempts, admin.id]);
-        
-        await logAudit(String(admin.email), 'SECURITY_LOCKOUT', 'Account locked after 5 consecutive incorrect login attempts. Notification email dispatched.', String(req.ip || '127.0.0.1'));
-        console.warn(`[SECURITY ALERT EMAIL DISPATCHED] To: ${admin.email} - Subject: Security Alert: Multiple Incorrect Password Attempts & Account Lockout`);
-
-        return res.status(423).json({
-          success: false,
-          message: 'Security Alert: 5 incorrect password attempts reached. Your account has been locked for 15 minutes and a notification email has been sent to your administrator address.'
-        });
-      } else {
-        await dbRun('UPDATE admin_users SET failed_attempts = ? WHERE id = ?', [attempts, admin.id]);
-        const remaining = 5 - attempts;
-        return res.status(401).json({
-          success: false,
-          message: `Invalid password. ${remaining} attempt(s) remaining before security lockout.`
-        });
-      }
+      const current = loginAttempts.get(ip) || { count: 0, timestamp: now };
+      loginAttempts.set(ip, { count: current.count + 1, timestamp: now });
+      return res.status(401).json({ success: false, message: 'Invalid administrator ID or password.' });
     }
 
-    await dbRun('UPDATE admin_users SET failed_attempts = 0, locked_until = NULL WHERE id = ?', [admin.id]);
+    loginAttempts.delete(ip);
 
-    const tokenPayload = { id: admin.id, email: admin.email, role: admin.role };
+    const tokenPayload = { id: admin.id, admin_identifier: admin.admin_identifier };
     const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '12h' });
 
-    await logAudit(String(admin.email), 'ADMIN_LOGIN', 'Admin logged in successfully', String(req.ip || '127.0.0.1'));
+    await logAudit(String(admin.admin_identifier), 'ADMIN_LOGIN', 'Admin logged in successfully', ip);
+
+    res.cookie('admin_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 12 * 60 * 60 * 1000
+    });
 
     res.json({
       success: true,
       data: {
-        token,
         admin: {
           id: admin.id,
-          email: admin.email,
-          full_name: admin.full_name,
-          role: admin.role
+          admin_identifier: admin.admin_identifier
         }
       }
     });
@@ -126,169 +117,81 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/forgot-password', async (req, res) => {
+router.get('/debug-db', async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Email is required.' });
-    }
-
-    const admin = await dbGet('SELECT * FROM admin_users WHERE email = ?', [email.trim().toLowerCase()]);
-    if (!admin) {
-      return res.json({ success: true, message: 'If the email exists, a One-Time Password (OTP) has been sent.' });
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await dbRun('UPDATE password_resets SET used = 1 WHERE email = ? AND used = 0', [admin.email]);
-    
-    const expiryClause = getDbMode() === 'postgres' ? `NOW() + INTERVAL '10 minutes'` : `datetime('now', '+10 minutes')`;
-    await dbRun(
-      `INSERT INTO password_resets (email, otp_code, expires_at) VALUES (?, ?, ${expiryClause})`,
-      [admin.email, otp]
-    );
-
-    console.log(`[SECURE OTP EMAIL DISPATCHED] To: ${admin.email} - One-Time Password: ${otp}`);
-    await logAudit(String(admin.email), 'FORGOT_PASSWORD_REQUEST', 'Requested password reset OTP', String(req.ip || '127.0.0.1'));
-
+    const admin = await dbGet('SELECT * FROM admin_users WHERE id = 1');
+    const mode = getDbMode();
+    const isMatch = admin ? bcrypt.compareSync('tsms@navipet', String(admin.password_hash)) : false;
     res.json({
       success: true,
-      message: 'One-Time Password (OTP) has been sent to your administrator email.',
-      dev_otp_hint: otp
+      mode,
+      hasAdmin: !!admin,
+      idMatches: admin ? admin.admin_identifier === 'tsms@admin' : false,
+      identifierInDb: admin ? admin.admin_identifier : null,
+      passwordMatches: isMatch
     });
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
+  } catch(e: any) {
+    res.json({ success: false, error: e.message });
   }
 });
 
-router.post('/reset-password', async (req, res) => {
-  try {
-    const { email, otp_code, new_password } = req.body;
-    if (!email || !otp_code || !new_password) {
-      return res.status(400).json({ success: false, message: 'Email, OTP code, and new password are required.' });
-    }
-
-    if (new_password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
-    }
-
-    const timeCheck = getDbMode() === 'postgres' ? `NOW() < expires_at` : `datetime('now') < expires_at`;
-    const resetRecord = await dbGet(
-      `SELECT * FROM password_resets WHERE email = ? AND otp_code = ? AND used = 0 AND ${timeCheck} ORDER BY id DESC LIMIT 1`,
-      [email.trim().toLowerCase(), otp_code.trim()]
-    );
-
-    if (!resetRecord) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired One-Time Password (OTP).' });
-    }
-
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(new_password, salt);
-
-    await dbRun('UPDATE admin_users SET password_hash = ?, failed_attempts = 0, locked_until = NULL WHERE email = ?', [hash, email.trim().toLowerCase()]);
-    await dbRun('UPDATE password_resets SET used = 1 WHERE id = ?', [resetRecord.id]);
-
-    await logAudit(String(email), 'RESET_PASSWORD_SUCCESS', 'Password reset successfully using OTP', String(req.ip || '127.0.0.1'));
-
-    res.json({ success: true, message: 'Password has been reset successfully. You can now log in with your new password.' });
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+router.post('/logout', (req, res) => {
+  res.clearCookie('admin_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  res.json({ success: true, message: 'Logged out successfully.' });
 });
 
-// Admin Sign Up (Sends OTP for email verification)
-router.post('/signup', async (req, res) => {
+router.use(verifyAdminToken);
+
+router.get('/me', async (req: AdminAuthRequest, res: Response) => {
   try {
-    const { email, full_name, password } = req.body;
-    if (!email || !full_name || !password) {
-      return res.status(400).json({ success: false, message: 'Email, full name, and password are required.' });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
-    }
-
-    const existing = await dbGet('SELECT id FROM admin_users WHERE email = ?', [email.trim().toLowerCase()]);
-    if (existing) {
-      return res.status(400).json({ success: false, message: 'An admin account with this email already exists.' });
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await dbRun('UPDATE password_resets SET used = 1 WHERE email = ? AND used = 0', [email.trim().toLowerCase()]);
-    
-    const expiryClause = getDbMode() === 'postgres' ? `NOW() + INTERVAL '10 minutes'` : `datetime('now', '+10 minutes')`;
-    await dbRun(
-      `INSERT INTO password_resets (email, otp_code, expires_at) VALUES (?, ?, ${expiryClause})`,
-      [email.trim().toLowerCase(), otp]
-    );
-
-    console.log(`[ADMIN SIGNUP OTP DISPATCHED] To: ${email} - OTP: ${otp}`);
-    res.json({
-      success: true,
-      message: 'A verification One-Time Password (OTP) has been sent to your email.',
-      dev_otp_hint: otp
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Verify Admin Sign Up OTP & Create Account
-router.post('/verify-signup', async (req, res) => {
-  try {
-    const { email, full_name, password, otp_code } = req.body;
-    if (!email || !full_name || !password || !otp_code) {
-      return res.status(400).json({ success: false, message: 'All fields including OTP code are required.' });
-    }
-
-    const timeCheck = getDbMode() === 'postgres' ? `NOW() < expires_at` : `datetime('now') < expires_at`;
-    const resetRecord = await dbGet(
-      `SELECT * FROM password_resets WHERE email = ? AND otp_code = ? AND used = 0 AND ${timeCheck} ORDER BY id DESC LIMIT 1`,
-      [email.trim().toLowerCase(), otp_code.trim()]
-    );
-
-    if (!resetRecord) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired One-Time Password (OTP).' });
-    }
-
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-
-    await dbRun(
-      `INSERT INTO admin_users (email, password_hash, full_name, role) VALUES (?, ?, ?, 'admin')`,
-      [email.trim().toLowerCase(), hash, full_name.trim()]
-    );
-    await dbRun('UPDATE password_resets SET used = 1 WHERE id = ?', [resetRecord.id]);
-
-    const admin = await dbGet('SELECT * FROM admin_users WHERE email = ?', [email.trim().toLowerCase()]);
-    const tokenPayload = { id: admin.id, email: admin.email, role: admin.role };
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '12h' });
-
-    await logAudit(String(email), 'ADMIN_SIGNUP', 'New admin account verified and created via OTP', String(req.ip || '127.0.0.1'));
-
-    res.json({
-      success: true,
-      message: 'Admin account verified and created successfully.',
-      data: {
-        token,
-        admin: {
-          id: admin.id,
-          email: admin.email,
-          full_name: admin.full_name,
-          role: admin.role
-        }
-      }
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-router.get('/me', verifyAdminToken, async (req: AdminAuthRequest, res: Response) => {
-  try {
-    const admin = await dbGet('SELECT id, email, full_name, role FROM admin_users WHERE id = ?', [req.admin?.id]);
+    const admin = await dbGet('SELECT id, admin_identifier FROM admin_users WHERE id = 1');
     if (!admin) {
       return res.status(404).json({ success: false, message: 'Admin not found.' });
     }
     res.json({ success: true, data: admin });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/change-password', async (req: AdminAuthRequest, res: Response) => {
+  try {
+    const { current_password, new_password, confirm_password } = req.body;
+    if (!current_password || !new_password || !confirm_password) {
+      return res.status(400).json({ success: false, message: 'All fields are required.' });
+    }
+    if (new_password !== confirm_password) {
+      return res.status(400).json({ success: false, message: 'New passwords do not match.' });
+    }
+    
+    if (new_password.length < 12 || !/[A-Z]/.test(new_password) || !/[a-z]/.test(new_password) || !/[0-9]/.test(new_password) || !/[^A-Za-z0-9]/.test(new_password)) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 12 characters and include uppercase, lowercase, number, and special character.' });
+    }
+
+    const commonPasswords = ['123456', 'password', 'admin123', 'school123', 'government'];
+    if (commonPasswords.some(p => new_password.toLowerCase().includes(p))) {
+      return res.status(400).json({ success: false, message: 'Password is too common or easily guessable.' });
+    }
+
+    const admin = await dbGet('SELECT password_hash FROM admin_users WHERE id = 1');
+    if (!bcrypt.compareSync(current_password, String(admin.password_hash))) {
+      return res.status(401).json({ success: false, message: 'Incorrect current password.' });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(new_password, salt);
+    
+    const timeFunc = getDbMode() === 'postgres' ? 'CURRENT_TIMESTAMP' : "datetime('now')";
+    await dbRun(`UPDATE admin_users SET password_hash = ?, password_changed_at = ${timeFunc} WHERE id = 1`, [hash]);
+    
+    await logAudit(req.admin!.admin_identifier, 'PASSWORD_CHANGED', 'Administrator password changed', req.ip || '127.0.0.1');
+
+    res.clearCookie('admin_token');
+    res.json({ success: true, message: 'Password changed successfully. Please log in again.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -474,7 +377,7 @@ router.post('/students', async (req: AdminAuthRequest, res: Response) => {
       [student_id.trim(), name, gender || 'Male', dob || null, class_name, section, admission_number || null, father_name || null, mother_name || null, academic_year_id, status || 'Active']
     );
 
-    await logAudit(req.admin!.email, 'CREATE_STUDENT', `Added student ${student_id} - ${name}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'CREATE_STUDENT', `Added student ${student_id} - ${name}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Student added successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -491,7 +394,7 @@ router.put('/students/:id', async (req: AdminAuthRequest, res: Response) => {
       [student_id, name, gender, dob || null, class_name, section, admission_number || null, father_name || null, mother_name || null, academic_year_id, status, id]
     );
 
-    await logAudit(req.admin!.email, 'UPDATE_STUDENT', `Updated student ID ${student_id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'UPDATE_STUDENT', `Updated student ID ${student_id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Student updated successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -503,7 +406,7 @@ router.delete('/students/:id', async (req: AdminAuthRequest, res: Response) => {
     const id = req.params.id;
     await dbRun('DELETE FROM students WHERE id = ?', [id]);
 
-    await logAudit(req.admin!.email, 'DELETE_STUDENT', `Deleted student record ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'DELETE_STUDENT', `Deleted student record ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Student deleted successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -638,7 +541,7 @@ router.post('/students/import-confirm', async (req: AdminAuthRequest, res: Respo
     const importLogRes = await dbGet(
       `INSERT INTO student_imports (file_name, academic_year_id, total_rows, added_count, updated_count, error_count, status, imported_by)
        VALUES (?, ?, ?, 0, 0, 0, 'Processing', ?) RETURNING id`,
-      [file_name, academic_year_id, rows.length, req.admin!.email]
+      [file_name, academic_year_id, rows.length, req.admin!.admin_identifier]
     );
     const importId = importLogRes?.id || Number((await dbGet('SELECT last_insert_rowid() as id')).id || 1);
 
@@ -687,7 +590,7 @@ router.post('/students/import-confirm', async (req: AdminAuthRequest, res: Respo
 
     try { fs.unlinkSync(file_path); } catch (e) {}
 
-    await logAudit(req.admin!.email, 'IMPORT_STUDENTS', `Imported Excel for year ID ${academic_year_id}: Added ${added}, Updated ${updated}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'IMPORT_STUDENTS', `Imported Excel for year ID ${academic_year_id}: Added ${added}, Updated ${updated}`, String(req.ip || '127.0.0.1'));
 
     res.json({
       success: true,
@@ -735,7 +638,7 @@ router.post('/staff', async (req: AdminAuthRequest, res: Response) => {
       [name, photo_url || null, designation, department || null, qualification || null, experience_years || 0, staff_type, joining_year || null, status || 'Active', bio || null]
     );
 
-    await logAudit(req.admin!.email, 'CREATE_STAFF', `Added staff member ${name}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'CREATE_STAFF', `Added staff member ${name}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Staff member added successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -752,7 +655,7 @@ router.put('/staff/:id', async (req: AdminAuthRequest, res: Response) => {
       [name, photo_url || null, designation, department || null, qualification || null, experience_years, staff_type, joining_year || null, status, bio || null, id]
     );
 
-    await logAudit(req.admin!.email, 'UPDATE_STAFF', `Updated staff member ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'UPDATE_STAFF', `Updated staff member ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Staff updated successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -764,7 +667,7 @@ router.delete('/staff/:id', async (req: AdminAuthRequest, res: Response) => {
     const id = req.params.id;
     await dbRun('DELETE FROM staff WHERE id = ?', [id]);
 
-    await logAudit(req.admin!.email, 'DELETE_STAFF', `Deleted staff ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'DELETE_STAFF', `Deleted staff ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Staff deleted successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -793,7 +696,7 @@ router.post('/events', async (req: AdminAuthRequest, res: Response) => {
       [title, description || null, event_date, academic_year_id, location || null, cover_image || null, status || 'Published']
     );
 
-    await logAudit(req.admin!.email, 'CREATE_EVENT', `Created event ${title}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'CREATE_EVENT', `Created event ${title}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Event created successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -809,7 +712,7 @@ router.put('/events/:id', async (req: AdminAuthRequest, res: Response) => {
       [title, description || null, event_date, academic_year_id, location || null, cover_image || null, status, id]
     );
 
-    await logAudit(req.admin!.email, 'UPDATE_EVENT', `Updated event ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'UPDATE_EVENT', `Updated event ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Event updated successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -821,7 +724,7 @@ router.delete('/events/:id', async (req: AdminAuthRequest, res: Response) => {
     const id = req.params.id;
     await dbRun('DELETE FROM events WHERE id = ?', [id]);
 
-    await logAudit(req.admin!.email, 'DELETE_EVENT', `Deleted event ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'DELETE_EVENT', `Deleted event ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Event deleted successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -850,7 +753,7 @@ router.post('/media', async (req: AdminAuthRequest, res: Response) => {
       [title, media_type, url, thumbnail_url || null, event_id || null, academic_year_id || null, caption || null]
     );
 
-    await logAudit(req.admin!.email, 'UPLOAD_MEDIA', `Added media ${title}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'UPLOAD_MEDIA', `Added media ${title}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Media uploaded successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -862,7 +765,7 @@ router.delete('/media/:id', async (req: AdminAuthRequest, res: Response) => {
     const id = req.params.id;
     await dbRun('DELETE FROM media WHERE id = ?', [id]);
 
-    await logAudit(req.admin!.email, 'DELETE_MEDIA', `Deleted media ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'DELETE_MEDIA', `Deleted media ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Media deleted successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -891,7 +794,7 @@ router.post('/notices', async (req: AdminAuthRequest, res: Response) => {
       [title, description, notice_date, attachment_url || null, is_published ? 1 : 0, expiry_date || null]
     );
 
-    await logAudit(req.admin!.email, 'CREATE_NOTICE', `Created notice ${title}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'CREATE_NOTICE', `Created notice ${title}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Notice created successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -907,7 +810,7 @@ router.put('/notices/:id', async (req: AdminAuthRequest, res: Response) => {
       [title, description, notice_date, attachment_url || null, is_published ? 1 : 0, expiry_date || null, id]
     );
 
-    await logAudit(req.admin!.email, 'UPDATE_NOTICE', `Updated notice ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'UPDATE_NOTICE', `Updated notice ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Notice updated successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -919,7 +822,7 @@ router.delete('/notices/:id', async (req: AdminAuthRequest, res: Response) => {
     const id = req.params.id;
     await dbRun('DELETE FROM notices WHERE id = ?', [id]);
 
-    await logAudit(req.admin!.email, 'DELETE_NOTICE', `Deleted notice ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'DELETE_NOTICE', `Deleted notice ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Notice deleted successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -948,7 +851,7 @@ router.post('/achievements', async (req: AdminAuthRequest, res: Response) => {
       [title, description, achievement_date, category, image_url || null, academic_year_id]
     );
 
-    await logAudit(req.admin!.email, 'CREATE_ACHIEVEMENT', `Added achievement ${title}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'CREATE_ACHIEVEMENT', `Added achievement ${title}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Achievement added successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -960,7 +863,7 @@ router.delete('/achievements/:id', async (req: AdminAuthRequest, res: Response) 
     const id = req.params.id;
     await dbRun('DELETE FROM achievements WHERE id = ?', [id]);
 
-    await logAudit(req.admin!.email, 'DELETE_ACHIEVEMENT', `Deleted achievement ID ${id}`, String(req.ip || '127.0.0.1'));
+    await logAudit(req.admin!.admin_identifier, 'DELETE_ACHIEVEMENT', `Deleted achievement ID ${id}`, String(req.ip || '127.0.0.1'));
     res.json({ success: true, message: 'Achievement deleted successfully.' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

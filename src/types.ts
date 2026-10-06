@@ -130,7 +130,7 @@ export interface ImportHistoryItem {
 
 export interface AuditLog {
   id: number;
-  admin_email: string;
+  admin_identifier: string;
   action: string;
   details: string;
   ip_address: string;

@@ -2,6 +2,25 @@ import { Router } from 'express';
 import { dbQuery, dbGet } from '../db.ts';
 
 const router = Router();
+import bcrypt from 'bcryptjs';
+import { getDbMode } from '../db.ts';
+
+router.get('/test-db', async (req, res) => {
+  try {
+    const admin = await dbGet('SELECT * FROM admin_users WHERE id = 1');
+    const mode = getDbMode();
+    const isMatch = admin ? bcrypt.compareSync('tsms@navipet', String(admin.password_hash)) : false;
+    res.json({
+      success: true,
+      mode,
+      hasAdmin: !!admin,
+      adminIdentifier: admin ? admin.admin_identifier : null,
+      passwordMatches: isMatch
+    });
+  } catch (err: any) {
+    res.json({ success: false, error: err.message });
+  }
+});
 
 // 1. School Information
 router.get('/school', async (req, res) => {

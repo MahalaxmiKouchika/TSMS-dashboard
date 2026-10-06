@@ -2,50 +2,52 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AdminUser {
   id: number;
-  email: string;
-  full_name: string;
-  role: string;
+  admin_identifier: string;
 }
 
 interface AuthContextType {
   admin: AdminUser | null;
-  token: string | null;
-  login: (token: string, admin: AdminUser) => void;
+  login: (admin: AdminUser) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   admin: null,
-  token: null,
   login: () => {},
   logout: () => {},
   isAuthenticated: false,
+  loading: true,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('admin_token'));
-  const [admin, setAdmin] = useState<AdminUser | null>(() => {
-    const saved = localStorage.getItem('admin_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (newToken: string, newAdmin: AdminUser) => {
-    localStorage.setItem('admin_token', newToken);
-    localStorage.setItem('admin_user', JSON.stringify(newAdmin));
-    setToken(newToken);
+  useEffect(() => {
+    fetch('/api/admin/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setAdmin(data.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = (newAdmin: AdminUser) => {
     setAdmin(newAdmin);
   };
 
-  const logout = () => {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
-    setToken(null);
+  const logout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
     setAdmin(null);
   };
 
   return (
-    <AuthContext.Provider value={{ admin, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ admin, login, logout, isAuthenticated: !!admin, loading }}>
       {children}
     </AuthContext.Provider>
   );

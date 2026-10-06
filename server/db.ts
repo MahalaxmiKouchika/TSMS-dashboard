@@ -116,22 +116,16 @@ export async function dbRun(text: string, params: any[] = []): Promise<any> {
 async function createPostgresTables(pool: pkg.Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS admin_users (
-      id SERIAL PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      admin_identifier TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      full_name TEXT NOT NULL,
-      role TEXT DEFAULT 'admin',
-      failed_attempts INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      password_changed_at TIMESTAMP,
+      last_login_at TIMESTAMP,
+      failed_login_attempts INTEGER DEFAULT 0,
       locked_until TIMESTAMP,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS password_resets (
-      id SERIAL PRIMARY KEY,
-      email TEXT NOT NULL,
-      otp_code TEXT NOT NULL,
-      expires_at TIMESTAMP NOT NULL,
-      used INTEGER DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS schools (
       id SERIAL PRIMARY KEY,
@@ -260,7 +254,7 @@ async function createPostgresTables(pool: pkg.Pool) {
     );
     CREATE TABLE IF NOT EXISTS audit_logs (
       id SERIAL PRIMARY KEY,
-      admin_email TEXT NOT NULL,
+      admin_identifier TEXT NOT NULL,
       action TEXT NOT NULL,
       details TEXT,
       ip_address TEXT,
@@ -272,22 +266,16 @@ async function createPostgresTables(pool: pkg.Pool) {
 function createSqliteTables(db: Database) {
   db.run(`
     CREATE TABLE IF NOT EXISTS admin_users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      admin_identifier TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      full_name TEXT NOT NULL,
-      role TEXT DEFAULT 'admin',
-      failed_attempts INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      password_changed_at DATETIME,
+      last_login_at DATETIME,
+      failed_login_attempts INTEGER DEFAULT 0,
       locked_until DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS password_resets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT NOT NULL,
-      otp_code TEXT NOT NULL,
-      expires_at DATETIME NOT NULL,
-      used INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS schools (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -416,7 +404,7 @@ function createSqliteTables(db: Database) {
     );
     CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      admin_email TEXT NOT NULL,
+      admin_identifier TEXT NOT NULL,
       action TEXT NOT NULL,
       details TEXT,
       ip_address TEXT,
@@ -453,15 +441,22 @@ async function seedPostgresData(pool: pkg.Pool) {
       vision = EXCLUDED.vision
   `);
 
-  const check = await pool.query('SELECT COUNT(*) as count FROM admin_users');
-  if (parseInt(check.rows[0].count) > 0) return;
-
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync('Admin@123', salt);
-  const demoHash = bcrypt.hashSync('DemoAdmin@123', salt);
-
-  await pool.query(`INSERT INTO admin_users (email, password_hash, full_name, role) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`, ['admin@tsmodelchoolnavipet.edu', hash, 'Principal Administrator', 'superadmin']);
-  await pool.query(`INSERT INTO admin_users (email, password_hash, full_name, role) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`, ['demo.admin@tsmodelchoolnavipet.edu', demoHash, 'Demo Customer Administrator', 'admin']);
+  const adminId = process.env.ADMIN_INITIAL_ID;
+  const adminPwd = process.env.ADMIN_INITIAL_PASSWORD;
+  if (adminId && adminPwd) {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(adminPwd, salt);
+    await pool.query(`
+      INSERT INTO admin_users (id, admin_identifier, password_hash) 
+      VALUES (1, $1, $2) 
+      ON CONFLICT (id) DO UPDATE SET 
+        admin_identifier = EXCLUDED.admin_identifier, 
+        password_hash = EXCLUDED.password_hash
+    `, [adminId, hash]);
+    console.log('Secure single administrator initialized/updated (PostgreSQL).');
+  } else {
+    console.warn('WARNING: No administrator exists and ADMIN_INITIAL_ID/ADMIN_INITIAL_PASSWORD are not set in .env.');
+  }
   await pool.query(`INSERT INTO academic_years (year_name, is_active, start_date, end_date) VALUES ('2025-26', 0, '2025-06-01', '2026-04-30') ON CONFLICT (year_name) DO NOTHING`);
   await pool.query(`INSERT INTO academic_years (year_name, is_active, start_date, end_date) VALUES ('2026-27', 1, '2026-06-01', '2027-04-30') ON CONFLICT (year_name) DO NOTHING`);
 }
@@ -473,15 +468,18 @@ function seedSqliteData(db: Database) {
   `);
   saveSqliteDatabase();
 
-  const check = db.exec('SELECT COUNT(*) as count FROM admin_users');
-  if (check.length > 0 && Number(check[0].values[0][0]) > 0) return;
-
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync('Admin@123', salt);
-  const demoHash = bcrypt.hashSync('DemoAdmin@123', salt);
-
-  db.run(`INSERT OR IGNORE INTO admin_users (id, email, password_hash, full_name, role) VALUES (1, 'admin@tsmodelchoolnavipet.edu', ?, 'Principal Administrator', 'superadmin')`, [hash]);
-  db.run(`INSERT OR IGNORE INTO admin_users (id, email, password_hash, full_name, role) VALUES (2, 'demo.admin@tsmodelchoolnavipet.edu', ?, 'Demo Customer Administrator', 'admin')`, [demoHash]);
+  const adminId = process.env.ADMIN_INITIAL_ID;
+  const adminPwd = process.env.ADMIN_INITIAL_PASSWORD;
+  if (adminId && adminPwd) {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(adminPwd, salt);
+    // Force update the admin credentials
+    db.run(`INSERT OR REPLACE INTO admin_users (id, admin_identifier, password_hash) VALUES (1, ?, ?)`, [adminId, hash]);
+    console.log('Secure single administrator initialized/updated (SQLite).');
+  } else {
+    console.warn('WARNING: No administrator exists and ADMIN_INITIAL_ID/ADMIN_INITIAL_PASSWORD are not set in .env.');
+  }
+  saveSqliteDatabase();
   db.run(`INSERT OR IGNORE INTO academic_years (id, year_name, is_active, start_date, end_date) VALUES (1, '2025-26', 0, '2025-06-01', '2026-04-30')`);
   db.run(`INSERT OR IGNORE INTO academic_years (id, year_name, is_active, start_date, end_date) VALUES (2, '2026-27', 1, '2026-06-01', '2027-04-30')`);
 
