@@ -1,83 +1,136 @@
 <div align="center">
-# 🏫 TSMS Dashboard
+<img src="assets/banner.svg" alt="TSMS Dashboard banner" width="100%"/>
+<br/>
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1200&color=818CF8&center=true&vCenter=true&width=760&lines=Public+school+portal+%2B+secure+admin+dashboard;Bulk+import+students+from+Excel+in+seconds;Academic-year+aware+records+and+galleries;PostgreSQL+or+zero-setup+SQLite;Every+admin+action+is+audit+logged" alt="Typing animation describing the project" />
+</a>
+<br/><br/>
  
-### Telangana Model School, Navipet — School Information Portal & Admin Dashboard
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-optional-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-fallback-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
  
-A full-stack web application that combines a **public school website** (student directory, staff, events, galleries, notices, achievements) with a **secure administration dashboard** for managing all school data, including bulk student import from Excel.
+![Node](https://img.shields.io/badge/node-%E2%89%A5%2018-339933?logo=nodedotjs&logoColor=white)
+![Status](https://img.shields.io/badge/status-active-success)
+![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen)
+![Made with love](https://img.shields.io/badge/made%20with-%E2%9D%A4-red)
  
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-optional-4169E1?logo=postgresql&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-fallback-003B57?logo=sqlite&logoColor=white)
+<br/>
+[**🚀 Quick Start**](#-quick-start) &nbsp;•&nbsp;
+[**🏗 Architecture**](#-system-architecture) &nbsp;•&nbsp;
+[**✨ Features**](#-application-features) &nbsp;•&nbsp;
+[**🔄 Workflow**](#-application-workflow) &nbsp;•&nbsp;
+[**🔮 Roadmap**](#-future-improvements) &nbsp;•&nbsp;
+[**💬 Support**](#-support)
  
 </div>
 ---
  
-## 📑 Table of Contents
+## 📖 Table of Contents
  
+<details open>
+<summary><b>Click to expand or collapse</b></summary>
 1. [Project Overview](#-project-overview)
-2. [System Architecture](#-system-architecture)
-3. [Tech Stack](#-tech-stack)
-4. [Repository Structure](#-repository-structure)
-5. [Application Features](#-application-features)
-6. [Database Schema](#-database-schema)
-7. [API Reference](#-api-reference)
-8. [How to Run](#-how-to-run)
-9. [Environment Variables](#-environment-variables)
-10. [Application Workflow](#-application-workflow)
-11. [Future Improvements](#-future-improvements)
-12. [Disclaimer](#-disclaimer)
-13. [Author](#-author)
-14. [Support](#-support)
+2. [At a Glance](#-at-a-glance)
+3. [System Architecture](#-system-architecture)
+4. [Tech Stack](#-tech-stack)
+5. [Repository Structure](#-repository-structure)
+6. [Application Features](#-application-features)
+7. [Screenshots](#-screenshots)
+8. [Database Schema](#-database-schema)
+9. [API Reference](#-api-reference)
+10. [Quick Start](#-quick-start)
+11. [Environment Variables](#-environment-variables)
+12. [Application Workflow](#-application-workflow)
+13. [Future Improvements](#-future-improvements)
+14. [Contributing](#-contributing)
+15. [Disclaimer](#-disclaimer)
+16. [Author](#-author)
+17. [Support](#-support)
+</details>
 ---
  
 ## 📌 Project Overview
  
-**TSMS Dashboard** is a school information and digital media portal built for **Telangana Model School, Navipet** (Nizamabad district, Telangana). It has two sides:
+**TSMS Dashboard** is a full-stack school information and digital media portal for **Telangana Model School, Navipet** (Nizamabad district, Telangana). It has two sides that share one codebase and one server:
  
-- **Public Portal** — open to parents, students, and visitors. They can read about the school, browse the student and staff directories, look up a student by ID, view events, photo and video galleries, notices, and achievements.
-- **Admin Dashboard** — a protected area where the school administrator manages everything shown on the public site: school profile, academic years, students (manual entry and Excel bulk import), staff, events, media, notices, and achievements. Every change is recorded in an audit log.
-### Problem it solves
+<table>
+<tr>
+<td width="50%" valign="top">
+### 🌐 Public Portal
+For parents, students, and visitors.
  
-Many schools keep student lists in spreadsheets and share news through notice boards or messaging groups. This project gives the school a single, searchable, always-available portal. The administrator updates content once in the dashboard and it appears on the public site immediately.
+- Read about the school, mission, and vision
+- Browse the student and staff directories
+- Look up a student by ID
+- Explore events, photo and video galleries
+- Read notices and celebrate achievements
+</td>
+<td width="50%" valign="top">
+### 🔐 Admin Dashboard
+For the school administrator.
  
-### Highlights
+- Manage school profile and academic years
+- Add students manually or import from Excel
+- Manage staff, events, media, notices, achievements
+- Review every action in the audit log
+- Changes appear on the public site instantly
+</td>
+</tr>
+</table>
+**Problem it solves:** many schools keep records in scattered spreadsheets and share news through notice boards or messaging groups. TSMS gives the school one searchable, always-available portal that the administrator updates once.
  
-- Public website and admin panel in **one codebase**, served by **one Express server**
-- **Excel (.xlsx / .csv) bulk student import** with a preview, validation, and error report before anything is saved
-- **Academic-year aware**: students, events, media, and achievements are tied to a year, and only one year is active at a time
-- **Dual database support**: PostgreSQL when `DATABASE_URL` is set, otherwise an embedded SQLite file with no setup
-- **Secure admin access**: bcrypt password hashing, JWT in an HTTP-only cookie, login rate limiting, and a full audit trail
+---
+ 
+## 📊 At a Glance
+ 
+| 🧩 | 🗂 | 🔌 | 🛡 | 🗃 |
+| :---: | :---: | :---: | :---: | :---: |
+| **13** public and admin modules | **12** database tables | **40+** API endpoints | **5** failed logins before lockout | **2** database engines supported |
+ 
 ---
  
 ## 🏗 System Architecture
  
-The application is a **single-server, three-layer architecture**. In development, Express serves the API and mounts Vite as middleware, so one command runs everything. In production, Express serves the pre-built React bundle from `dist/`.
+<div align="center">
+  <img src="assets/architecture.svg" alt="Animated system architecture diagram" width="100%"/>
+</div>
+<br/>
+The app is a **single-server, three-layer architecture**. In development, Express serves the API and mounts Vite as middleware, so one command runs everything. In production, Express serves the pre-built React bundle from `dist/`.
  
+| Layer | Responsibility |
+| --- | --- |
+| **Presentation** (`src/`) | React 19 single-page app with React Router. Public pages share a navbar and footer. Admin pages sit behind `AdminLayout`, which redirects unauthenticated users to the login page. |
+| **API** (`server/routes/`) | `public.ts` exposes read-only endpoints. `admin.ts` exposes create, update, and delete endpoints behind JWT middleware (except login, logout, and the session check). |
+| **Data** (`server/db.ts`) | Picks PostgreSQL or SQLite at startup and exposes the same `dbQuery`, `dbGet`, and `dbRun` helpers. Creates tables and seeds the school profile and academic years on first run. |
+ 
+<details>
+<summary><b>📐 View the detailed component diagram</b></summary>
 ```mermaid
 flowchart TB
     subgraph Client["Browser (React SPA)"]
-        PUB["Public Pages<br/>Home, Students, Staff, Events,<br/>Gallery, Notices, Achievements"]
-        ADM["Admin Pages<br/>Dashboard, Students, Import,<br/>Staff, Events, Media, Notices"]
-        AUTH["AuthContext<br/>(session state)"]
+        PUB["Public pages"]
+        ADM["Admin pages"]
+        AUTH["AuthContext"]
     end
  
     subgraph Server["Express Server (server.ts)"]
-        PR["/api/public/*<br/>Public routes (no login)"]
-        AR["/api/admin/*<br/>Admin routes"]
-        MW["verifyAdminToken<br/>(JWT middleware)"]
-        UP["Multer<br/>(file uploads, 10 MB limit)"]
-        XL["SheetJS (xlsx)<br/>Excel parsing"]
-        STATIC["/uploads<br/>static files"]
+        PR["/api/public/*"]
+        AR["/api/admin/*"]
+        MW["verifyAdminToken (JWT)"]
+        UP["Multer uploads"]
+        XL["SheetJS Excel parser"]
+        STATIC["/uploads static files"]
     end
  
-    subgraph Data["Data Layer (server/db.ts)"]
-        HELPER["dbQuery / dbGet / dbRun<br/>unified helpers"]
-        PG[("PostgreSQL<br/>if DATABASE_URL set")]
-        SQ[("SQLite via sql.js<br/>data/portal.sqlite")]
+    subgraph Data["Data layer (server/db.ts)"]
+        HELPER["dbQuery, dbGet, dbRun"]
+        PG[("PostgreSQL")]
+        SQ[("SQLite via sql.js")]
     end
  
     PUB --> PR
@@ -93,47 +146,42 @@ flowchart TB
     UP --> STATIC
 ```
  
-### Layer responsibilities
- 
-| Layer | Responsibility |
-| --- | --- |
-| **Presentation** (`src/`) | React 19 single-page app with React Router. Public pages use a shared navbar and footer. Admin pages sit behind an `AdminLayout` that redirects unauthenticated users to the login page. |
-| **API** (`server/routes/`) | `public.ts` exposes read-only endpoints. `admin.ts` exposes create, update, and delete endpoints, all protected by JWT middleware (except login, logout, and session check). |
-| **Data** (`server/db.ts`) | A thin abstraction that picks PostgreSQL or SQLite at startup and exposes the same `dbQuery`, `dbGet`, and `dbRun` helpers. It creates tables and seeds the school profile and academic years on first run. |
- 
+</details>
 ---
  
 ## 🧰 Tech Stack
  
 | Category | Technology |
 | --- | --- |
-| **Frontend framework** | React 19, React Router DOM 7 |
-| **Language** | TypeScript |
+| **Frontend** | React 19, React Router DOM 7, TypeScript |
 | **Build tool** | Vite 8 with `@vitejs/plugin-react` |
 | **Styling** | Tailwind CSS 4 (`@tailwindcss/vite`) |
-| **Icons & animation** | Lucide React, Motion |
+| **Icons and motion** | Lucide React, Motion |
 | **Backend** | Node.js, Express 4 |
 | **Authentication** | `jsonwebtoken` (JWT), `bcryptjs`, HTTP-only cookies |
 | **File uploads** | Multer |
 | **Excel handling** | SheetJS (`xlsx`) |
 | **Database** | PostgreSQL (`pg`) or embedded SQLite (`sql.js`) |
-| **Dev tooling** | `tsx`, `esbuild`, `dotenv`, `cors` |
+| **Tooling** | `tsx`, `esbuild`, `dotenv`, `cors` |
 | **Package managers** | npm (`package-lock.json`) or Bun (`bun.lock`) |
  
 ---
  
 ## 📂 Repository Structure
  
+<details open>
+<summary><b>Click to expand or collapse</b></summary>
 ```
 TSMS-dashboard/
-├── server.ts                  # Express entry point (API + Vite middleware / static hosting)
+├── assets/                    # README banner and architecture animations
+├── server.ts                  # Express entry (API + Vite middleware / static hosting)
 ├── server/
-│   ├── db.ts                  # DB connection, table creation, seeding, query helpers
+│   ├── db.ts                  # DB connection, tables, seeding, query helpers
 │   ├── middleware/
 │   │   └── auth.ts            # JWT verification (cookie or Bearer token)
 │   └── routes/
-│       ├── public.ts          # Public read-only API (/api/public)
-│       └── admin.ts           # Protected admin API (/api/admin)
+│       ├── public.ts          # Public read-only API  (/api/public)
+│       └── admin.ts           # Protected admin API   (/api/admin)
 ├── src/
 │   ├── main.tsx               # React entry point
 │   ├── App.tsx                # Route definitions (public + admin)
@@ -157,7 +205,7 @@ TSMS-dashboard/
 │                              # ImportHistory, StaffManagement, EventManagement,
 │                              # MediaManagement, NoticeManagement,
 │                              # AchievementManagement, AuditLogs
-├── index.html                 # HTML shell with SEO / Open Graph tags
+├── index.html                 # HTML shell with SEO and Open Graph tags
 ├── vite.config.ts             # Vite + React + Tailwind config
 ├── tsconfig.json
 ├── package.json
@@ -166,8 +214,9 @@ TSMS-dashboard/
 └── uploads/                   # (auto-created) uploaded images, PDFs, spreadsheets
 ```
  
-> `data/` and `uploads/` are created automatically on first run and are excluded from Git via `.gitignore`.
+> `data/` and `uploads/` are created on first run and excluded from Git via `.gitignore`.
  
+</details>
 ---
  
 ## ✨ Application Features
@@ -176,64 +225,86 @@ TSMS-dashboard/
  
 | Page | Route | What it offers |
 | --- | --- | --- |
-| **Home** | `/` | Hero banner, live statistics, latest notices, upcoming events, and recent achievements |
-| **About** | `/about` | School profile, mission, vision, management type, medium of instruction, UDISE and school codes |
-| **Students** | `/students` | Paginated student directory with filters for class, section, academic year, and name search |
-| **Student ID Search** | `/students/search` | Instant lookup by Student ID, showing only non-sensitive fields |
-| **Staff** | `/staff` | Staff directory with tabs for All, Teaching, and Non-teaching |
-| **Events** | `/events`, `/events/:id` | Event listing and detail pages with linked photos and videos |
-| **Gallery** | `/gallery` | Photo gallery filterable by event and academic year |
-| **Videos** | `/videos` | Video gallery with embedded YouTube playback |
-| **Notices** | `/notices` | Published circulars and announcements, with attachments |
-| **Achievements** | `/achievements` | Achievements by category: academic, sports, cultural, government, school, student, teacher |
-| **Contact** | `/contact` | School contact details and an enquiry form |
+| 🏠 **Home** | `/` | Hero banner, live statistics, latest notices, upcoming events, recent achievements |
+| ℹ️ **About** | `/about` | School profile, mission, vision, management type, medium of instruction, UDISE and school codes |
+| 🎓 **Students** | `/students` | Paginated directory with class, section, academic year, and name filters |
+| 🔍 **Student ID Search** | `/students/search` | Instant lookup by Student ID showing only non-sensitive fields |
+| 👩‍🏫 **Staff** | `/staff` | Staff directory with All, Teaching, and Non-teaching tabs |
+| 📅 **Events** | `/events`, `/events/:id` | Event listing and detail pages with linked photos and videos |
+| 🖼 **Gallery** | `/gallery` | Photo gallery filterable by event and academic year |
+| 🎬 **Videos** | `/videos` | Video gallery with embedded YouTube playback |
+| 📢 **Notices** | `/notices` | Published circulars and announcements with attachments |
+| 🏆 **Achievements** | `/achievements` | Academic, sports, cultural, government, school, student, and teacher categories |
+| ✉️ **Contact** | `/contact` | School contact details and an enquiry form |
  
-**Privacy by design:** the public API returns only student ID, name, class, section, gender, academic year, and status. Date of birth, admission number, and parent names are never sent to public endpoints.
+> 🔒 **Privacy by design:** public endpoints return only student ID, name, class, section, gender, academic year, and status. Date of birth, admission number, and parent names are never exposed publicly.
  
 ### 🔐 Admin Dashboard
  
 | Module | Route | Capabilities |
 | --- | --- | --- |
-| **Dashboard** | `/admin/dashboard` | Totals for students, teaching staff, all staff, and events; recent import activity |
-| **School Profile** | `/admin/school` | Edit school name, codes, address, contact details, mission, vision, logo, and banner |
-| **Academic Years** | `/admin/academic-years` | Create years and activate one as the current year |
-| **Student List** | `/admin/students` | Search, filter, add, edit, and delete student records |
-| **Import Excel** | `/admin/students/import` | Download a template, upload a file, preview valid and invalid rows, then confirm the import |
-| **Import History** | `/admin/students/import-history` | Past imports with added, updated, and error counts |
-| **Staff Management** | `/admin/staff` | Add, edit, and delete teaching and non-teaching staff |
-| **Events Management** | `/admin/events` | Manage events with date, location, cover image, and publish status |
-| **Photo & Video Gallery** | `/admin/gallery` | Upload photos and add videos, link them to events and years |
-| **Notices & Circulars** | `/admin/notices` | Publish notices with optional attachments and expiry dates |
-| **Achievements** | `/admin/achievements` | Record achievements by category and year |
-| **Audit Logs** | `/admin/audit-logs` | The 100 most recent administrative actions with timestamp and IP address |
+| 📈 **Dashboard** | `/admin/dashboard` | Totals for students, teaching staff, all staff, events, plus recent imports |
+| 🏫 **School Profile** | `/admin/school` | Edit name, codes, address, contacts, mission, vision, logo, banner |
+| 🗓 **Academic Years** | `/admin/academic-years` | Create years and activate one as current |
+| 🎓 **Student List** | `/admin/students` | Search, filter, add, edit, delete students |
+| 📥 **Import Excel** | `/admin/students/import` | Template download, upload, preview, validate, confirm |
+| 🕘 **Import History** | `/admin/students/import-history` | Past imports with added, updated, and error counts |
+| 👥 **Staff** | `/admin/staff` | Manage teaching and non-teaching staff |
+| 📅 **Events** | `/admin/events` | Date, location, cover image, publish status |
+| 🖼 **Gallery** | `/admin/gallery` | Upload photos, add videos, link to events and years |
+| 📢 **Notices** | `/admin/notices` | Publish notices with attachments and expiry dates |
+| 🏆 **Achievements** | `/admin/achievements` | Record achievements by category and year |
+| 🧾 **Audit Logs** | `/admin/audit-logs` | The 100 most recent actions with timestamp and IP |
  
 ### 🛡 Security Features
  
-- **Password hashing** with bcrypt (10 salt rounds)
-- **JWT sessions** (12-hour expiry) stored in an **HTTP-only, SameSite=Strict** cookie, with `Secure` enabled in production
-- **Login rate limiting**: 5 failed attempts per IP within 15 minutes triggers a temporary block
-- **Strong password policy** on change: at least 12 characters with uppercase, lowercase, a number, and a special character, and common passwords are rejected
-- **Protected routes**: all admin API routes sit behind JWT middleware, and the admin UI redirects unauthenticated users to the login page
-- **Upload controls**: 10 MB size limit and file-type filtering (images, PDF, Excel, CSV)
-- **Audit trail** for logins, password changes, and every create, update, and delete action
-- **Parameterized SQL queries** throughout to prevent SQL injection
+| Feature | Detail |
+| --- | --- |
+| 🔑 **Password hashing** | bcrypt with 10 salt rounds |
+| 🍪 **Session cookie** | JWT (12-hour expiry) in an HTTP-only, SameSite=Strict cookie, `Secure` in production |
+| 🚦 **Rate limiting** | 5 failed logins per IP within 15 minutes triggers a temporary block |
+| 💪 **Password policy** | 12+ characters with upper, lower, number, special character; common passwords rejected |
+| 🧱 **Protected routes** | Admin API behind JWT middleware, admin UI redirects to login |
+| 📎 **Upload controls** | 10 MB limit and file-type filtering (images, PDF, Excel, CSV) |
+| 🧾 **Audit trail** | Logins, password changes, and every create, update, and delete |
+| 💉 **SQL injection defense** | Parameterized queries throughout |
+ 
+---
+ 
+## 🖼 Screenshots
+ 
+> Add your own screenshots to a `docs/screenshots/` folder and uncomment the table below.
+ 
+<!--
+<table>
+<tr>
+<td align="center"><img src="docs/screenshots/home.png" width="100%"/><br/><sub><b>Home</b></sub></td>
+<td align="center"><img src="docs/screenshots/students.png" width="100%"/><br/><sub><b>Student Directory</b></sub></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/admin-dashboard.png" width="100%"/><br/><sub><b>Admin Dashboard</b></sub></td>
+<td align="center"><img src="docs/screenshots/excel-import.png" width="100%"/><br/><sub><b>Excel Import Preview</b></sub></td>
+</tr>
+</table>
+-->
+ 
 ---
  
 ## 🗄 Database Schema
  
-Tables are created automatically on first start (PostgreSQL or SQLite).
+Tables are created automatically on first start, on either PostgreSQL or SQLite.
  
 | Table | Purpose |
 | --- | --- |
 | `admin_users` | Single administrator account (ID, bcrypt hash, login metadata) |
 | `schools` | School profile (one record) |
-| `academic_years` | Year name, start and end dates, and an `is_active` flag |
+| `academic_years` | Year name, start and end dates, `is_active` flag |
 | `students` | Student records linked to an academic year |
 | `staff` | Teaching and non-teaching staff |
 | `events` | School events linked to an academic year |
 | `media` | Photos and videos, optionally linked to an event |
 | `notices` | Notices and circulars with publish and expiry fields |
-| `achievements` | Achievements with a category and academic year |
+| `achievements` | Achievements with category and academic year |
 | `student_imports` | One row per Excel import (counts and status) |
 | `student_import_errors` | Row-level errors recorded during imports |
 | `audit_logs` | Administrative activity log |
@@ -253,8 +324,9 @@ erDiagram
  
 ## 🔌 API Reference
  
-### Public API: `/api/public` (no authentication)
- 
+<details>
+<summary><b>🌐 Public API: <code>/api/public</code> (no authentication)</b></summary>
+<br/>
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/school` | School profile |
@@ -262,13 +334,15 @@ erDiagram
 | GET | `/students/search?studentId=` | Look up one student by ID |
 | GET | `/students` | Directory with `page`, `limit`, `class`, `section`, `academic_year_id`, `search` |
 | GET | `/staff?type=` | Active staff, optionally `teaching` or `non-teaching` |
-| GET | `/events`, `/events/:id` | Published events and event details with media |
+| GET | `/events`, `/events/:id` | Published events and details with media |
 | GET | `/gallery` | Photos and videos |
 | GET | `/notices` | Published, non-expired notices |
 | GET | `/achievements` | Achievements |
  
-### Admin API: `/api/admin` (JWT required unless noted)
- 
+</details>
+<details>
+<summary><b>🔐 Admin API: <code>/api/admin</code> (JWT required unless noted)</b></summary>
+<br/>
 | Area | Endpoints |
 | --- | --- |
 | **Session** | `POST /login`, `POST /logout`, `GET /me`, `POST /change-password` |
@@ -284,38 +358,30 @@ erDiagram
 | **Achievements** | `GET`, `POST`, `DELETE /:id` on `/achievements` |
 | **Audit** | `GET /audit-logs` |
  
-Health check: `GET /api/health` returns `{ status: "ok", timestamp }`.
+</details>
+Health check: `GET /api/health` returns `{ "status": "ok", "timestamp": "..." }`.
  
 ---
  
-## 🚀 How to Run
+## 🚀 Quick Start
  
 ### Prerequisites
  
-- **Node.js 18 or later** (Node 20+ recommended) and **npm**
-- *(Optional)* A **PostgreSQL** database. Without one, the app uses an embedded SQLite file automatically.
-### 1. Clone the repository
+- **Node.js 18+** (20+ recommended) and **npm**
+- *(Optional)* a **PostgreSQL** database. Without one, the app uses an embedded SQLite file automatically.
+### 1️⃣ Clone and install
  
 ```bash
 git clone https://github.com/<your-username>/TSMS-dashboard.git
 cd TSMS-dashboard
-```
- 
-### 2. Install dependencies
- 
-```bash
 npm install
 ```
  
-### 3. Configure environment variables
- 
-Copy the template and fill in your values:
+### 2️⃣ Configure environment
  
 ```bash
 cp .env.example .env
 ```
- 
-At minimum, set the admin credentials and a JWT secret:
  
 ```env
 ADMIN_INITIAL_ID=your-admin-id
@@ -324,38 +390,40 @@ JWT_SECRET=a-long-random-string
 # DATABASE_URL=postgresql://user:password@host:5432/dbname   # optional
 ```
  
-> ⚠️ If `ADMIN_INITIAL_ID` and `ADMIN_INITIAL_PASSWORD` are not set, no administrator account is created and you will not be able to log in.
+> ⚠️ If `ADMIN_INITIAL_ID` and `ADMIN_INITIAL_PASSWORD` are missing, no administrator is created and you cannot log in.
  
-### 4. Start the development server
+### 3️⃣ Start the development server
  
 ```bash
 npm run dev
 ```
  
-Open **http://localhost:3000**:
- 
-| URL | What you will see |
+| 🔗 URL | What you get |
 | --- | --- |
 | `http://localhost:3000/` | Public website |
 | `http://localhost:3000/admin/login` | Admin login |
  
-On first run the app creates the `data/` and `uploads/` folders, creates all tables, and seeds the school profile and two academic years (2025-26 and 2026-27, with 2026-27 active). With SQLite it also seeds a few sample staff and student records so the pages are not empty.
+On first run the app creates `data/` and `uploads/`, builds all tables, and seeds the school profile and two academic years (2025-26 and 2026-27, with 2026-27 active). With SQLite it also adds a few sample staff and student records so pages are not empty.
  
-### 5. Build and run for production
+### 4️⃣ Build for production
  
+<details>
+<summary><b>🐧 macOS / Linux</b></summary>
 ```bash
-npm run build                      # builds the React app to dist/ and bundles the server to server.js
-NODE_ENV=production npm run preview   # runs node server.js
+npm run build
+NODE_ENV=production npm run preview
 ```
  
-On Windows PowerShell:
- 
+</details>
+<details>
+<summary><b>🪟 Windows PowerShell</b></summary>
 ```powershell
 npm run build
 $env:NODE_ENV="production"; npm run preview
 ```
  
-### Other scripts
+</details>
+### 🧾 Available scripts
  
 | Command | Description |
 | --- | --- |
@@ -365,60 +433,60 @@ $env:NODE_ENV="production"; npm run preview
 | `npm run lint` | Type-check with `tsc --noEmit` |
 | `npm run clean` | Remove `dist/` and `server.js` |
  
-### Using PostgreSQL
+### 🐘 Using PostgreSQL
  
-Set `DATABASE_URL` in `.env`. On startup the server tries PostgreSQL first; if the connection fails it logs a warning and falls back to SQLite, so check the console to confirm which database is active.
+Set `DATABASE_URL` in `.env`. The server tries PostgreSQL first and falls back to SQLite if the connection fails, so check the console to confirm which database is active.
  
 ---
  
-## ⚙ Environment Variables
+## ⚙️ Environment Variables
  
 | Variable | Required | Description |
-| --- | --- | --- |
+| --- | :---: | --- |
 | `ADMIN_INITIAL_ID` | ✅ | Administrator login ID, created or updated on every startup |
 | `ADMIN_INITIAL_PASSWORD` | ✅ | Administrator password, stored as a bcrypt hash |
-| `JWT_SECRET` | ✅ (strongly) | Secret used to sign admin session tokens. Always set your own value. |
-| `DATABASE_URL` | Optional | PostgreSQL connection string. If omitted, SQLite is used. |
-| `PORT` | Optional | Server port (default `3000`) |
-| `NODE_ENV` | Optional | Set to `production` to serve the built frontend and enable secure cookies |
-| `SESSION_SECRET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET`, `CORS_ORIGIN` | Reserved | Present in `.env.example` for future use and not read by the current code |
+| `JWT_SECRET` | ✅ | Secret for signing admin session tokens. Always set your own value. |
+| `DATABASE_URL` | ➖ | PostgreSQL connection string. If omitted, SQLite is used. |
+| `PORT` | ➖ | Server port (default `3000`) |
+| `NODE_ENV` | ➖ | Set to `production` to serve the built frontend and enable secure cookies |
+| `SESSION_SECRET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET`, `CORS_ORIGIN` | 🕒 | In `.env.example` for future use and not read by the current code |
  
-> Never commit your `.env` file. It is already listed in `.gitignore`.
+> 🚫 Never commit your `.env` file. It is already listed in `.gitignore`.
  
 ---
  
 ## 🔄 Application Workflow
  
-### 1. Visitor workflow (public)
+### 1. Visitor journey
  
 ```mermaid
 flowchart LR
-    A[Visitor opens site] --> B[Home page loads<br/>school info, stats, notices, events]
+    A([Visitor opens site]) --> B[Home page<br/>school info, stats, notices, events]
     B --> C{What do they want?}
-    C -->|Find a student| D[Student ID Search<br/>or filtered directory]
+    C -->|Find a student| D[Student ID search<br/>or filtered directory]
     C -->|Meet the staff| E[Staff directory]
     C -->|See school life| F[Events, Gallery, Videos]
     C -->|Read updates| G[Notices and Achievements]
     C -->|Get in touch| H[Contact page]
 ```
  
-### 2. Administrator workflow
+### 2. Administrator journey
  
 ```mermaid
 flowchart TD
-    A[Admin opens /admin/login] --> B[Submit ID and password]
+    A([Admin opens /admin/login]) --> B[Submit ID and password]
     B --> C{Valid and under<br/>rate limit?}
-    C -->|No| D[Error shown<br/>attempt counted]
+    C -->|No| D[Error shown, attempt counted]
     C -->|Yes| E[JWT issued in HTTP-only cookie]
     E --> F[Dashboard overview]
-    F --> G[Manage content<br/>students, staff, events, media,<br/>notices, achievements, school profile]
+    F --> G[Manage content<br/>students, staff, events, media,<br/>notices, achievements, profile]
     G --> H[Change saved to database]
     H --> I[Action written to audit log]
     H --> J[Public site shows updated content]
     F --> K[Logout clears session]
 ```
  
-### 3. Excel student import workflow
+### 3. Excel student import
  
 ```mermaid
 sequenceDiagram
@@ -430,34 +498,40 @@ sequenceDiagram
     A->>UI: Download template
     UI->>API: GET /students/template
     API-->>A: student_import_template.xlsx
-    A->>UI: Select academic year and upload filled file
+    A->>UI: Choose academic year, upload filled file
     UI->>API: POST /students/import-preview
     API->>API: Parse sheet, check required fields,<br/>detect duplicates, mark Insert or Update
     API-->>UI: Summary, first 50 valid rows, error list
     A->>UI: Review and confirm
     UI->>API: POST /students/import-confirm
-    API->>DB: Insert new rows, update existing ones<br/>(matched on Student ID and year)
-    API->>DB: Save import record and row-level errors
+    API->>DB: Insert new rows, update existing<br/>(matched on Student ID and year)
+    API->>DB: Save import record and row errors
     API->>DB: Write audit log entry
     API-->>UI: Added, updated, error counts
 ```
  
-**Required columns:** `Student ID`, `Student Name`, `Class`, `Section`
-**Optional columns:** `Gender`, `Date of Birth`, `Admission Number`, `Father Name`, `Mother Name`, `Status`
+| | Columns |
+| --- | --- |
+| **Required** | `Student ID`, `Student Name`, `Class`, `Section` |
+| **Optional** | `Gender`, `Date of Birth`, `Admission Number`, `Father Name`, `Mother Name`, `Status` |
  
-### 4. Academic year workflow
+### 4. Academic year lifecycle
  
-1. Admin creates a new academic year (for example, `2027-28`).
-2. Admin activates it. Only one year is active at a time.
-3. Public statistics and counts reflect the active year.
-4. Students, events, media, and achievements stay linked to the year they were created in, so history is preserved.
+```mermaid
+flowchart LR
+    A[Create year<br/>e.g. 2027-28] --> B[Activate it]
+    B --> C[Only one year<br/>is active at a time]
+    C --> D[Public statistics follow<br/>the active year]
+    C --> E[Older records keep<br/>their year, history preserved]
+```
+ 
 ---
  
 ## 🔮 Future Improvements
  
-**Features**
- 
-- [ ] Connect the Contact page enquiry form to the backend (save messages or send email notifications)
+<details open>
+<summary><b>✨ Features</b></summary>
+- [ ] Connect the Contact page enquiry form to the backend (store messages or send email)
 - [ ] Attendance tracking and class-wise reports
 - [ ] Exam results and report card management
 - [ ] Parent and student login with a personal view of their own records
@@ -465,58 +539,82 @@ sequenceDiagram
 - [ ] Bilingual interface (English and Telugu)
 - [ ] SMS or WhatsApp notifications for notices and events
 - [ ] Export students, staff, and audit logs to Excel or PDF
-- [ ] Image upload for achievements and staff directly from the form, with automatic thumbnail generation
-- [ ] Add edit support for achievements and media entries
-**Engineering and security**
- 
-- [ ] Enforce a required `JWT_SECRET` at startup instead of using a fallback value
+- [ ] Image upload for achievements and staff directly from forms, with thumbnail generation
+- [ ] Edit support for achievements and media entries
+- [ ] Dark mode for the public site
+</details>
+<details open>
+<summary><b>🛠 Engineering and security</b></summary>
+- [ ] Require `JWT_SECRET` at startup instead of using a fallback value
 - [ ] Remove or restrict diagnostic endpoints before deployment
 - [ ] Restrict CORS to a configured origin (`CORS_ORIGIN`)
-- [ ] Add security headers with Helmet and persistent, distributed rate limiting
-- [ ] Validate uploaded files by content (magic bytes) rather than by extension and MIME type alone
-- [ ] Wrap Excel imports in a database transaction so a failure cannot leave a partial import
+- [ ] Add Helmet security headers and persistent, distributed rate limiting
+- [ ] Validate uploads by file content (magic bytes), not extension and MIME type alone
+- [ ] Wrap Excel imports in a database transaction to prevent partial imports
 - [ ] Move uploads to cloud storage such as S3 or Supabase Storage
-- [ ] Add automated tests (unit, API, and end-to-end) and a CI pipeline
-- [ ] Add Docker and `docker-compose` setup for one-command deployment
+- [ ] Add automated tests (unit, API, end-to-end) and a CI pipeline
+- [ ] Add Docker and `docker-compose` for one-command deployment
 - [ ] Add pagination and search to the audit log and import history
+</details>
 ---
  
-## ⚠ Disclaimer
+## 🤝 Contributing
  
-- This project is an **independent software project** and is **not an official website** of the Telangana Model Schools, the Government of Telangana, or any government body unless explicitly stated by the school administration.
-- Sample data seeded by the application (student names, staff names, contact details, email, and website URLs) is **placeholder data for demonstration only**. Replace it with verified information before any real use.
+Contributions, bug reports, and ideas are welcome.
+ 
+1. **Fork** the repository
+2. **Create** a branch: `git checkout -b feature/your-feature`
+3. **Commit** your changes: `git commit -m "Add your feature"`
+4. **Push** the branch: `git push origin feature/your-feature`
+5. **Open** a Pull Request
+Please run `npm run lint` before submitting.
+ 
+---
+ 
+## ⚠️ Disclaimer
+ 
+- This is an **independent software project** and is **not an official website** of the Telangana Model Schools, the Government of Telangana, or any government body unless explicitly stated by the school administration.
+- Sample data seeded by the application (names, contact details, email, and website URLs) is **placeholder data for demonstration only**. Replace it with verified information before real use.
 - The portal handles **student personal information**. Anyone deploying it is responsible for complying with applicable data protection and child privacy laws and school policies, for choosing strong credentials, and for securing the server, database, and backups.
 - The software is provided **"as is"**, without warranty of any kind. The author is not liable for any loss, damage, or data exposure arising from its use.
-- Review the Future Improvements section, especially the security items, before exposing the application to the public internet.
+- Review the security items under [Future Improvements](#-future-improvements) before exposing the application to the public internet.
 ---
  
 ## 👩‍💻 Author
  
+<div align="center">
 **Mahalakshmi**
 B.Tech Computer Science Engineering Student, Institute of Aeronautical Engineering, Hyderabad
  
-- GitHub: [@your-github-username](https://github.com/your-github-username)
-- LinkedIn: [your-linkedin-profile](https://www.linkedin.com/in/your-linkedin-profile)
-- Email: your-email@example.com
+[![GitHub](https://img.shields.io/badge/GitHub-your--username-181717?style=for-the-badge&logo=github)](https://github.com/your-github-username)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/your-linkedin-profile)
+[![Email](https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:your-email@example.com)
+ 
+</div>
 ---
  
 ## 💬 Support
  
 If you run into problems or have suggestions:
  
-1. **Check the console.** The server logs which database is active and reports startup warnings (for example, missing admin credentials).
-2. **Open an issue** on the GitHub repository with the steps to reproduce, your Node.js version, and any error messages.
-3. **Common fixes**
-   - *Cannot log in:* confirm `ADMIN_INITIAL_ID` and `ADMIN_INITIAL_PASSWORD` are set in `.env`, then restart the server.
-   - *Port already in use:* set a different `PORT` in `.env`.
-   - *Data resets or looks different than expected:* check whether the app fell back to SQLite because `DATABASE_URL` failed to connect.
-   - *Excel import rejected:* use the downloadable template and make sure `Student ID`, `Student Name`, `Class`, and `Section` are filled in for every row.
-If you find this project useful, please consider giving it a ⭐ on GitHub.
+1. **Check the console.** The server logs which database is active and reports startup warnings, such as missing admin credentials.
+2. **Open an issue** on GitHub with the steps to reproduce, your Node.js version, and any error messages.
+<details>
+<summary><b>🧯 Common fixes</b></summary>
+| Problem | Fix |
+| --- | --- |
+| Cannot log in | Confirm `ADMIN_INITIAL_ID` and `ADMIN_INITIAL_PASSWORD` are set in `.env`, then restart the server |
+| Port already in use | Set a different `PORT` in `.env` |
+| Data looks different than expected | The app may have fallen back to SQLite because `DATABASE_URL` failed to connect |
+| Excel import rejected | Use the downloadable template and fill `Student ID`, `Student Name`, `Class`, and `Section` on every row |
  
----
- 
+</details>
 <div align="center">
-Made with ❤️ for rural education in Telangana
+### ⭐ If this project helped you, please give it a star!
+ 
+<br/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,14,18&height=120&section=footer" width="100%" alt="Footer wave"/>
+**Made with ❤️ for rural education in Telangana**
  
 </div>
  
